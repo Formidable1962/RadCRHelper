@@ -1,0 +1,40 @@
+// Rad CR Helper settings. Comments like this one are allowed.
+// This file sits next to RadCRHelper.exe. Edit it, then restart the app (or sign out and back in).
+{
+  // Bump only when the SHAPE of this file changes. The app warns if this is newer than it understands.
+  "configVersion": 1,
+
+  "panel": {
+    "widthDip": 320,          // expanded panel width
+    "tabWidthDip": 22,        // collapsed tab on the right edge
+    "tabHeightDip": 110,
+    "startExpanded": true,    // open or collapsed when the app starts at sign-in
+    "hideFromScreenShare": true, // hide the panel from Zoom/Teams screen sharing (NOT from the mirrored TV)
+    "theme": "Dark",          // Dark or Light
+    "accentColor": "#FFCD00"  // Iowa gold
+  },
+
+  "display": {
+    "defaultModeAtLogin": "Mirror", // Mirror, Extend, or None (leave as-is)
+    "revertSeconds": 15              // "Keep this screen setting?" countdown
+  },
+
+  "session": {
+    "countdownSeconds": 30           // Sign out / Restart countdown
+  },
+
+  // Keyboard shortcuts. Any action name from README.md works here.
+  // A future USB macro deck can send F13-F24, which no normal program uses.
+  "hotkeys": [
+    { "keys": "Ctrl+Alt+H", "action": "panel.toggle" }
+  ],
+
+  // Per-room settings, keyed by computer name (shown in Room Info).
+  "rooms": {
+    "EXAMPLE-PC-NAME": {
+      "roomName": "Example Conference Room",
+      "presenterDisplay": "DELL P2422H", // the desk monitor; stays the main screen in Extend. Name as shown in Room Info.
+      "hideDisplayControls": false        // true for rooms that will never have a second screen
+    }
+  }
+}

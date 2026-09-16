@@ -1,0 +1,281 @@
+<Window
+    x:Class="RadCRHelper.Views.PanelWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="Rad CR Helper"
+    Width="320"
+    Height="700"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    ResizeMode="NoResize"
+    ShowActivated="False"
+    ShowInTaskbar="False"
+    Topmost="True"
+    WindowStartupLocation="Manual"
+    WindowStyle="None">
+
+    <!--
+        One window, two looks:
+          TabView      - the small handle on the right edge when collapsed
+          ExpandedView - the full panel
+        Every button carries its action name in Tag and goes through Action_Click,
+        so buttons, hotkeys and a future macro deck all run the same code.
+    -->
+    <Grid>
+
+        <!-- ============ Collapsed tab ============ -->
+        <ui:Button
+            x:Name="TabView"
+            Padding="0"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Appearance="Primary"
+            Click="Action_Click"
+            CornerRadius="0"
+            Tag="panel.expand"
+            ToolTip="Open Rad CR Helper"
+            Visibility="Collapsed">
+            <ui:SymbolIcon FontSize="18" Symbol="ChevronLeft24" />
+        </ui:Button>
+
+        <!-- ============ Expanded panel ============ -->
+        <Border
+            x:Name="ExpandedView"
+            BorderBrush="{DynamicResource AccentFillColorDefaultBrush}"
+            BorderThickness="3,0,0,0">
+            <Grid Margin="18,14,18,14">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <!-- header -->
+                    <RowDefinition Height="Auto" />
+                    <!-- settings warning -->
+                    <RowDefinition Height="Auto" />
+                    <!-- screens -->
+                    <RowDefinition Height="*" />
+                    <!-- room for future buttons -->
+                    <RowDefinition Height="Auto" />
+                    <!-- bottom: room info, sign out, restart -->
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock
+                            FontSize="22"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            Text="Rad CR Helper" />
+                        <TextBlock
+                            x:Name="RoomNameText"
+                            Margin="0,2,0,0"
+                            FontSize="13"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <ui:Button
+                        Grid.Column="1"
+                        Width="44"
+                        Height="44"
+                        Padding="0"
+                        Appearance="Transparent"
+                        Click="Action_Click"
+                        Tag="panel.collapse"
+                        ToolTip="Hide this panel">
+                        <ui:SymbolIcon FontSize="22" Symbol="ChevronRight24" />
+                    </ui:Button>
+                </Grid>
+
+                <!-- Settings-file warning (hidden unless there is a problem) -->
+                <Border
+                    x:Name="WarningBox"
+                    Grid.Row="1"
+                    Margin="0,12,0,0"
+                    Padding="10,8"
+                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                    CornerRadius="6"
+                    Visibility="Collapsed">
+                    <TextBlock
+                        x:Name="WarningText"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                </Border>
+
+                <!-- Screens: Mirror / Extend -->
+                <StackPanel
+                    x:Name="ScreensSection"
+                    Grid.Row="2"
+                    Margin="0,22,0,0">
+                    <TextBlock
+                        Margin="2,0,0,8"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="TV and screens" />
+
+                    <ui:Button
+                        x:Name="MirrorButton"
+                        Height="84"
+                        Padding="14,8"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Appearance="Secondary"
+                        Click="Action_Click"
+                        Tag="display.mirror">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="44" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon
+                                VerticalAlignment="Center"
+                                FontSize="30"
+                                Symbol="DualScreenMirror24" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock
+                                        FontSize="19"
+                                        FontWeight="SemiBold"
+                                        Text="Mirror" />
+                                    <TextBlock
+                                        x:Name="MirrorOnText"
+                                        Margin="10,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Text="● ON NOW"
+                                        Visibility="Collapsed" />
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,2,0,0"
+                                    FontSize="13"
+                                    Opacity="0.85"
+                                    Text="Both screens show the same thing"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </ui:Button>
+
+                    <ui:Button
+                        x:Name="ExtendButton"
+                        Height="84"
+                        Margin="0,10,0,0"
+                        Padding="14,8"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Appearance="Secondary"
+                        Click="Action_Click"
+                        Tag="display.extend">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="44" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon
+                                VerticalAlignment="Center"
+                                FontSize="30"
+                                Symbol="DualScreenSpan24" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock
+                                        FontSize="19"
+                                        FontWeight="SemiBold"
+                                        Text="Extend" />
+                                    <TextBlock
+                                        x:Name="ExtendOnText"
+                                        Margin="10,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Text="● ON NOW"
+                                        Visibility="Collapsed" />
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,2,0,0"
+                                    FontSize="13"
+                                    Opacity="0.85"
+                                    Text="Separate screens (presenter view)"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </ui:Button>
+
+                    <TextBlock
+                        x:Name="DisplayStatusText"
+                        Margin="2,10,0,0"
+                        FontSize="13"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                </StackPanel>
+
+                <!-- Bottom: kept apart from everyday buttons and visually quieter -->
+                <StackPanel Grid.Row="4">
+                    <ui:Button
+                        Margin="0,0,0,10"
+                        Padding="6,4"
+                        HorizontalAlignment="Left"
+                        Appearance="Transparent"
+                        Click="Action_Click"
+                        Content="Room info"
+                        FontSize="13"
+                        Tag="roominfo.show">
+                        <ui:Button.Icon>
+                            <ui:SymbolIcon Symbol="Info24" />
+                        </ui:Button.Icon>
+                    </ui:Button>
+
+                    <Border
+                        Height="1"
+                        Margin="0,0,0,12"
+                        Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <ui:Button
+                            Grid.Column="0"
+                            Height="46"
+                            HorizontalAlignment="Stretch"
+                            Appearance="Secondary"
+                            Click="Action_Click"
+                            Content="Sign out"
+                            FontSize="15"
+                            Tag="session.signout">
+                            <ui:Button.Icon>
+                                <ui:SymbolIcon Symbol="SignOut24" />
+                            </ui:Button.Icon>
+                        </ui:Button>
+                        <ui:Button
+                            x:Name="RestartButton"
+                            Grid.Column="2"
+                            Height="46"
+                            HorizontalAlignment="Stretch"
+                            Appearance="Secondary"
+                            Click="Action_Click"
+                            Content="Restart"
+                            FontSize="15"
+                            Tag="session.restart">
+                            <ui:Button.Icon>
+                                <ui:SymbolIcon Symbol="ArrowClockwise24" />
+                            </ui:Button.Icon>
+                        </ui:Button>
+                    </Grid>
+
+                    <TextBlock
+                        x:Name="VersionText"
+                        Margin="2,10,0,0"
+                        FontSize="11"
+                        Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

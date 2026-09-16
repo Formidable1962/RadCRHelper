@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Rad CR Helper — conference-room helper panel for Radiology.
+    Version lives HERE and only here. Bump it for every release, then tag the commit vX.Y.Z.
+    0.x = pilot. 1.0.0 = first deployment to the rooms.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>RadCRHelper</AssemblyName>
+    <RootNamespace>RadCRHelper</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PlatformTarget>x64</PlatformTarget>
+
+    <Version>0.1.0</Version>
+    <Product>Rad CR Helper</Product>
+    <Company>University of Iowa Department of Radiology</Company>
+    <Copyright>University of Iowa Department of Radiology</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WPF-UI" Version="4.2.0" />
+  </ItemGroup>
+
+  <!-- The settings file sits next to the .exe so it can be edited without rebuilding. -->
+  <ItemGroup>
+    <None Update="RadCRHelper.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
+  </ItemGroup>
+
+  <!--
+    Stamp the short git commit into the version shown in Room Info, e.g. 0.1.0+a1b2c3d.
+    Quietly skipped if git is missing or the repo has no commits yet.
+  -->
+  <Target Name="SetSourceRevisionId" BeforeTargets="InitializeSourceControlInformation">
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardErrorImportance="low" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_GitShortSha" />
+      <Output TaskParameter="ExitCode" PropertyName="_GitExitCode" />
+    </Exec>
+    <PropertyGroup Condition="'$(_GitExitCode)' == '0'">
+      <SourceRevisionId>$(_GitShortSha)</SourceRevisionId>
+    </PropertyGroup>
+  </Target>
+
+</Project>

@@ -1,0 +1,19 @@
+# Build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.rsuser
+
+# Publish output and packages
+publish/
+*.nupkg
+
+# OS / OneDrive noise
+Thumbs.db
+desktop.ini
+.DS_Store
+*-DESKTOP-*.cs
+*-LAPTOP-*.cs
