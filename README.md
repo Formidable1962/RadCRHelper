@@ -17,6 +17,7 @@ behind big, plainly labelled buttons.
 | Safety net | After every switch: "Keep this screen setting?" — goes back automatically after 15 s. |
 | Sign-in default | Screens reset to **Mirror** when the app starts at sign-in. |
 | Sign out / Restart | Bottom of the panel. 30-second countdown with **Cancel** and **Sign out now / Restart now**. Forced. **No Shut down**, by design. |
+| Quick links | Buttons from `links` in settings: Resident Conference, Today's calendar, Email. One open per button every 5 s. |
 | Room info | Computer, room, screens (names to use in settings), mode, version, settings and log file paths. **Copy** for tickets. |
 
 ## Build and run
@@ -57,11 +58,13 @@ Lives next to the `.exe`. Comments are allowed. Restart the app after editing.
 - `display.revertSeconds`, `session.countdownSeconds` — countdown lengths.
 - `hotkeys` — list of `{ "keys": "...", "action": "..." }`. Key names are WPF `Key` names:
   letters `A`–`Z`, digits `D0`–`D9`, `F1`–`F24`. Modifiers: `Ctrl`, `Alt`, `Shift`, `Win`.
+- `links` — Quick links buttons: `label`, `subtitle`, `url` (http/https/zoommtg/zoomus/msteams), optional `id` and `icon`.
 - `rooms` — keyed by **computer name** (see Room info):
   - `roomName` — shown under the title.
   - `presenterDisplay` — the desk monitor's name (or part of it) from Room info.
     Stays the main screen in Extend so the taskbar and this panel stay on the desk.
   - `hideDisplayControls` — `true` for rooms that will never have a second screen.
+  - `defaultModeAtLogin` — optional override of the sign-in screen mode for that PC.
 
 `configVersion` changes only when the file's shape changes; an older app warns if it meets a newer file.
 
@@ -74,7 +77,10 @@ Every button runs a named action. Hotkeys and a future USB macro deck use the sa
 | `panel.toggle` / `panel.expand` / `panel.collapse` | Open or close the panel |
 | `display.mirror` / `display.extend` | Switch screens (with the Keep prompt) |
 | `session.signout` / `session.restart` | Countdown, then forced sign out / restart |
+| `link.<id>` | Open that Quick link, e.g. `link.resident-conference` |
 | `roominfo.show` | Room info window |
+| `app.exit` | Close the app (admin; default `Ctrl+Alt+Shift+X`, no button) |
+| `app.exit.prompt` | "Close Rad CR Helper?" then exit. Also: double-click the panel title |
 
 **Macro deck idea:** have the deck send `F13`–`F24` (no normal program uses them) and map them here:
 

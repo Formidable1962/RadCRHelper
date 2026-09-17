@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
@@ -36,6 +37,7 @@ public partial class App : Application
     private bool _promptOpen;
     private bool _startupComplete;
     private RoomInfoWindow? _roomInfo;
+    private readonly Dictionary<string, DateTime> _lastLinkOpen = new();
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -104,6 +106,30 @@ public partial class App : Application
         _actions["session.signout"] = () => ConfirmSessionAsync(restart: false);
         _actions["session.restart"] = () => ConfirmSessionAsync(restart: true);
 
+        // One action per quick-launch link: "link.resident-conference", etc.
+        foreach (var link in _config.Links)
+        {
+            var captured = link;
+            _actions[$"link.{link.Id}"] = () => { OpenLink(captured); return Task.CompletedTask; };
+        }
+
+        // Admin exit. No button on purpose; reach it with the hotkey in RadCRHelper.json.
+        _actions["app.exit"] = () =>
+        {
+            Log.Info("Exit requested by hotkey");
+            IsExiting = true;
+            Shutdown();
+            return Task.CompletedTask;
+        };
+
+        // Hidden exit from the panel: double-click the title. Asks first, "No" is the default.
+        _actions["app.exit.prompt"] = () =>
+        {
+            var answer = MessageBox.Show("Close Rad CR Helper?", "Rad CR Helper",
+                MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+            return answer == MessageBoxResult.Yes ? _actions["app.exit"]() : Task.CompletedTask;
+        };
+
         _actions["roominfo.show"] = () =>
         {
             if (_roomInfo is { IsLoaded: true }) { _roomInfo.Activate(); return Task.CompletedTask; }
@@ -139,7 +165,7 @@ public partial class App : Application
 
     private async Task ApplyStartupModeAsync()
     {
-        var target = _config.Display.DefaultModeAtLogin switch
+        var target = (_config.ThisRoom.DefaultModeAtLogin ?? _config.Display.DefaultModeAtLogin) switch
         {
             StartupDisplayMode.Mirror => ScreenMode.Mirror,
             StartupDisplayMode.Extend => ScreenMode.Extend,
@@ -252,6 +278,31 @@ public partial class App : Application
         _panel.Reposition();
         if (!_switching)
             _panel.ShowDisplayState(DisplayService.GetSnapshot(), busy: false);
+    }
+
+    // =====================================================================
+    // Quick-launch links
+    // =====================================================================
+
+    private void OpenLink(LinkSetting link)
+    {
+        // Nervous users double- and triple-click when nothing seems to happen. One open per link every 5 s.
+        if (_lastLinkOpen.TryGetValue(link.Id, out var last) && DateTime.Now - last < TimeSpan.FromSeconds(5))
+            return;
+        _lastLinkOpen[link.Id] = DateTime.Now;
+
+        try
+        {
+            Log.Info($"Opening link '{link.Label}' ({link.Url})");
+            Process.Start(new ProcessStartInfo(link.Url) { UseShellExecute = true });
+            _panel?.ShowLinkStatus($"Opening {link.Label}…");
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Opening link '{link.Label}' failed", ex);
+            MessageBox.Show($"{link.Label} could not be opened.\n\nPlease contact Radiology IT.",
+                "Rad CR Helper", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     // =====================================================================

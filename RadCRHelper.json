@@ -26,7 +26,36 @@
   // Keyboard shortcuts. Any action name from README.md works here.
   // A future USB macro deck can send F13-F24, which no normal program uses.
   "hotkeys": [
-    { "keys": "Ctrl+Alt+H", "action": "panel.toggle" }
+    { "keys": "Ctrl+Alt+H", "action": "panel.toggle" },
+    { "keys": "Ctrl+Alt+Shift+X", "action": "app.exit" }   // admin only: closes the app
+  ],
+
+  // Quick links: buttons, top to bottom in this order.
+  //   id       - optional; action name becomes "link.<id>" for hotkeys / macro deck
+  //   icon     - optional Fluent icon name (Video24, Globe24, People24, Link24 ...). Default Video24.
+  //   url      - http, https, zoommtg, zoomus or msteams
+  "links": [
+    {
+      "id": "resident-conference",
+      "label": "Resident Conference",
+      "subtitle": "Join the Zoom meeting",
+      "url": "http://medicine.uiowa.edu/Radiology/residentconference",
+      "icon": "Video24"
+    },
+    {
+      "id": "todays-calendar",
+      "label": "Today's calendar",
+      "subtitle": "Your Outlook calendar for today",
+      "url": "https://outlook.cloud.microsoft/calendar/view/day",
+      "icon": "CalendarToday24"
+    },
+    {
+      "id": "email",
+      "label": "Email",
+      "subtitle": "Your Outlook inbox",
+      "url": "https://outlook.cloud.microsoft/mail/",
+      "icon": "Mail24"
+    }
   ],
 
   // Per-room settings, keyed by computer name (shown in Room Info).
@@ -34,7 +63,12 @@
     "EXAMPLE-PC-NAME": {
       "roomName": "Example Conference Room",
       "presenterDisplay": "DELL P2422H", // the desk monitor; stays the main screen in Extend. Name as shown in Room Info.
-      "hideDisplayControls": false        // true for rooms that will never have a second screen
+      "hideDisplayControls": false,       // true for rooms that will never have a second screen
+      "defaultModeAtLogin": "Mirror"      // optional: overrides display.defaultModeAtLogin for this PC
+    },
+    "DESKTOP-QQBPGRM": {
+      "roomName": "Allen's desk (development)",
+      "defaultModeAtLogin": "None"        // don't mirror the home monitors while testing
     }
   }
 }

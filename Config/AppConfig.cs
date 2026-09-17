@@ -20,6 +20,9 @@ public sealed class AppConfig
     public DisplaySettings Display { get; set; } = new();
     public SessionSettings Session { get; set; } = new();
     public List<HotkeySetting> Hotkeys { get; set; } = new() { new() { Keys = "Ctrl+Alt+H", Action = "panel.toggle" } };
+
+    /// <summary>Quick-launch buttons (Zoom meetings, web pages). Shown in the panel's Meetings section.</summary>
+    public List<LinkSetting> Links { get; set; } = new();
     public Dictionary<string, RoomSettings> Rooms { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     // ---- Filled in by Load(), not from JSON ----
@@ -73,6 +76,10 @@ public sealed class AppConfig
         config.Session ??= new SessionSettings();
         config.Hotkeys ??= new List<HotkeySetting>();
         config.Hotkeys.RemoveAll(h => h is null);
+        config.Links ??= new List<LinkSetting>();
+        config.Links.RemoveAll(l => l is null || string.IsNullOrWhiteSpace(l.Label) || !LinkSetting.IsAllowedUrl(l.Url));
+        foreach (var link in config.Links)
+            if (string.IsNullOrWhiteSpace(link.Id)) link.Id = LinkSetting.Slug(link.Label);
         config.Rooms ??= new Dictionary<string, RoomSettings>();
 
         // Rebuild with a case-insensitive lookup; the deserializer creates its own dictionary.
@@ -118,9 +125,33 @@ public sealed class HotkeySetting
     public string Action { get; set; } = "";
 }
 
+public sealed class LinkSetting
+{
+    /// <summary>Action name becomes "link.&lt;id&gt;" (for hotkeys / macro deck). Made from the label if left out.</summary>
+    public string Id { get; set; } = "";
+
+    public string Label { get; set; } = "";
+    public string? Subtitle { get; set; }
+    public string Url { get; set; } = "";
+
+    /// <summary>WPF-UI Fluent icon name, e.g. Video24, Globe24. Defaults to Video24.</summary>
+    public string? Icon { get; set; }
+
+    public static bool IsAllowedUrl(string? url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+        (uri.Scheme is "http" or "https" or "zoommtg" or "zoomus" or "msteams");
+
+    public static string Slug(string text) =>
+        string.Join("-", new string(text.ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : ' ').ToArray())
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+}
+
 public sealed class RoomSettings
 {
     public string? RoomName { get; set; }
+
+    /// <summary>Overrides display.defaultModeAtLogin for this computer only (e.g. None on a developer's desk).</summary>
+    public StartupDisplayMode? DefaultModeAtLogin { get; set; }
 
     /// <summary>Desk monitor name (or part of it) as shown in Room Info. Kept as the main screen in Extend.</summary>
     public string? PresenterDisplay { get; set; }

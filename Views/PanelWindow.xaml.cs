@@ -1,9 +1,14 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using RadCRHelper.Config;
 using RadCRHelper.Services;
 using ControlAppearance = Wpf.Ui.Controls.ControlAppearance;
+using SymbolRegular = Wpf.Ui.Controls.SymbolRegular;
+using UiButton = Wpf.Ui.Controls.Button;
+using UiSymbolIcon = Wpf.Ui.Controls.SymbolIcon;
 
 namespace RadCRHelper.Views;
 
@@ -14,6 +19,7 @@ public partial class PanelWindow : Window
 {
     private readonly AppConfig _config;
     private readonly Action<string> _invoke;
+    private readonly DispatcherTimer _linkStatusTimer = new() { Interval = TimeSpan.FromSeconds(6) };
 
     public bool IsExpanded { get; private set; }
 
@@ -36,6 +42,13 @@ public partial class PanelWindow : Window
 
         if (config.ThisRoom.HideDisplayControls)
             ScreensSection.Visibility = Visibility.Collapsed;
+
+        BuildLinks(config.Links);
+        _linkStatusTimer.Tick += (_, _) =>
+        {
+            _linkStatusTimer.Stop();
+            LinkStatusText.Visibility = Visibility.Collapsed;
+        };
 
         SourceInitialized += (_, _) =>
         {
@@ -103,6 +116,67 @@ public partial class PanelWindow : Window
         status ??= snapshot.CanSwitch ? null : "Second display not detected. Check that the TV is on and its cable is connected.";
         DisplayStatusText.Text = status ?? "";
         DisplayStatusText.Visibility = status is null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>One big button per link, styled like the Mirror/Extend buttons.</summary>
+    private void BuildLinks(IReadOnlyList<LinkSetting> links)
+    {
+        if (links.Count == 0)
+        {
+            LinksSection.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        foreach (var link in links)
+        {
+            var symbol = Enum.TryParse<SymbolRegular>(link.Icon, ignoreCase: true, out var s) ? s : SymbolRegular.Video24;
+
+            var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            text.Children.Add(new TextBlock { Text = link.Label, FontSize = 19, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+            if (!string.IsNullOrWhiteSpace(link.Subtitle))
+                text.Children.Add(new TextBlock { Text = link.Subtitle, FontSize = 13, Opacity = 0.85, Margin = new Thickness(0, 2, 0, 0), TextWrapping = TextWrapping.Wrap });
+
+            var content = new Grid();
+            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });
+            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            var icon = new UiSymbolIcon { Symbol = symbol, FontSize = 30, VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(text, 1);
+            content.Children.Add(icon);
+            content.Children.Add(text);
+
+            var button = new UiButton
+            {
+                Appearance = ControlAppearance.Secondary,
+                MinHeight = 84,
+                Padding = new Thickness(14, 8, 14, 8),
+                Margin = new Thickness(0, LinksPanel.Children.Count == 0 ? 0 : 10, 0, 0),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                Tag = $"link.{link.Id}",
+                ToolTip = link.Url,
+                Content = content,
+            };
+            button.Click += Action_Click;
+            LinksPanel.Children.Add(button);
+        }
+    }
+
+    /// <summary>Short reassurance under the Meetings buttons, e.g. "Opening Resident Conference…".</summary>
+    public void ShowLinkStatus(string message)
+    {
+        LinkStatusText.Text = message;
+        LinkStatusText.Visibility = Visibility.Visible;
+        _linkStatusTimer.Stop();
+        _linkStatusTimer.Start();
+    }
+
+    private void Title_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            e.Handled = true;
+            _invoke("app.exit.prompt");
+        }
     }
 
     private void Action_Click(object sender, RoutedEventArgs e)

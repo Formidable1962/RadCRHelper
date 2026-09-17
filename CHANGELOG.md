@@ -6,6 +6,14 @@ Tag each release in git as `vX.Y.Z`.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-17
+
+- New **Quick links** section: buttons from `links` in the settings file.
+  Buttons: **Resident Conference** (Zoom), **Today's calendar** and **Email** (Outlook on the web). Clicking again within 5 seconds does nothing,
+  so nervous double-clicks don't open several copies.
+- Admin exit: `Ctrl+Alt+Shift+X` closes the app, or double-click the panel title and answer Yes.
+- Rooms can override the sign-in screen mode (`rooms.<PC>.defaultModeAtLogin`).
+
 ## [0.1.0] - 2026-09-16
 
 First scaffold. Not yet built or tested on a room PC.
