@@ -11,6 +11,15 @@ Tag each release in git as `vX.Y.Z`.
 - New **Quick links** section: buttons from `links` in the settings file.
   Buttons: **Resident Conference** (Zoom), **Today's calendar** and **Email** (Outlook on the web). Clicking again within 5 seconds does nothing,
   so nervous double-clicks don't open several copies.
+- Calendar and Email open Outlook on the web as an **Edge app window** (no tabs or address bar),
+  falling back to Chrome, then the installed Outlook app, then a plain-language message.
+  Fixes the "How do you want to open this?" prompt.
+- Quick links are grouped under headings: **Zoom meetings** and **Office 365** (`group` per link).
+- Office 365 shows as two-across tiles: PowerPoint | Your OneDrive, Your Calendar | Your Mail (`groupColumns`).
+- New **PowerPoint** button: opens the installed PowerPoint. If it is missing, asks
+  "Can't find PowerPoint on this workstation! Open PowerPoint online instead?" (`localApp` per link).
+- New **OneDrive** button (OneDrive on the web) as an Edge app window, then Chrome, then the default browser.
+- Resident Conference opens in Edge (then Chrome).
 - Admin exit: `Ctrl+Alt+Shift+X` closes the app, or double-click the panel title and answer Yes.
 - Rooms can override the sign-in screen mode (`rooms.<PC>.defaultModeAtLogin`).
 

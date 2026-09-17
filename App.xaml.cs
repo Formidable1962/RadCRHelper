@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
@@ -291,18 +290,43 @@ public partial class App : Application
             return;
         _lastLinkOpen[link.Id] = DateTime.Now;
 
-        try
+        // Installed program first (e.g. PowerPoint); offer the web version if it is missing.
+        if (!string.IsNullOrWhiteSpace(link.LocalApp))
         {
-            Log.Info($"Opening link '{link.Label}' ({link.Url})");
-            Process.Start(new ProcessStartInfo(link.Url) { UseShellExecute = true });
+            if (LinkLauncher.OpenLocalApp(link.LocalApp))
+            {
+                _panel?.ShowLinkStatus($"Opening {link.Label}…");
+                return;
+            }
+
+            _lastLinkOpen.Remove(link.Id);
+            if (!LinkSetting.IsAllowedUrl(link.Url))
+            {
+                MessageBox.Show($"Can't find {link.Label} on this workstation.\n\nPlease contact Radiology IT.",
+                    "Rad CR Helper", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var online = MessageBox.Show(
+                $"Can't find {link.Label} on this workstation!\n\nOpen {link.Label} online instead?",
+                "Rad CR Helper", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+            if (online != MessageBoxResult.Yes) return;
+            _lastLinkOpen[link.Id] = DateTime.Now;
+        }
+
+        Log.Info($"Opening link '{link.Label}' ({link.Url}, {link.OpenWith})");
+        if (LinkLauncher.Open(link) is not null)
+        {
             _panel?.ShowLinkStatus($"Opening {link.Label}…");
+            return;
         }
-        catch (Exception ex)
-        {
-            Log.Error($"Opening link '{link.Label}' failed", ex);
-            MessageBox.Show($"{link.Label} could not be opened.\n\nPlease contact Radiology IT.",
-                "Rad CR Helper", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
+
+        _lastLinkOpen.Remove(link.Id); // let them try again straight away
+        var what = string.Equals(link.FallbackApp, "outlook", StringComparison.OrdinalIgnoreCase)
+            ? "Rad CR Helper can't open Outlook on this computer."
+            : $"Rad CR Helper can't open {link.Label} on this computer.";
+        MessageBox.Show($"{what}\n\nPlease contact Radiology IT.",
+            "Rad CR Helper", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     // =====================================================================

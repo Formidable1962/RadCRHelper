@@ -31,32 +31,73 @@
   ],
 
   // Quick links: buttons, top to bottom in this order.
+  //   group    - heading the button sits under; groups show in the order they first appear
   //   id       - optional; action name becomes "link.<id>" for hotkeys / macro deck
   //   icon     - optional Fluent icon name (Video24, Globe24, People24, Link24 ...). Default Video24.
   //   url      - http, https, zoommtg, zoomus or msteams
+  //   openWith - default (Windows decides), edge (Edge, then Chrome), edgeApp (same, as an app window)
+  //   fallbackApp   - "outlook": if no Edge or Chrome, open installed Outlook; if that fails, tell the user
+  //   outlookFolder - "calendar" or "inbox" for that fallback
+  //   localApp - installed program to open first (e.g. POWERPNT.EXE); if missing, the user is asked
+  //              whether to open "url" instead
   "links": [
     {
+      "group": "Zoom meetings",
       "id": "resident-conference",
       "label": "Resident Conference",
       "subtitle": "Join the Zoom meeting",
       "url": "http://medicine.uiowa.edu/Radiology/residentconference",
-      "icon": "Video24"
+      "icon": "Video24",
+      "openWith": "edge"
     },
     {
+      "group": "Office 365",
+      "id": "powerpoint",
+      "label": "PowerPoint",
+      "subtitle": "Open PowerPoint on this computer",
+      "localApp": "POWERPNT.EXE",
+      "url": "https://www.microsoft365.com/launch/powerpoint",
+      "icon": "SlideMultiple24",
+      "openWith": "edgeApp"
+    },
+    {
+      "group": "Office 365",
+      "id": "onedrive",
+      "label": "Your OneDrive",
+      "subtitle": "Your files",
+      "url": "https://iowa-my.sharepoint.com/my",
+      "icon": "Cloud24",
+      "openWith": "edgeApp"
+    },
+    {
+      "group": "Office 365",
       "id": "todays-calendar",
-      "label": "Today's calendar",
-      "subtitle": "Your Outlook calendar for today",
+      "label": "Your Calendar",
+      "subtitle": "Today in your Outlook calendar",
       "url": "https://outlook.cloud.microsoft/calendar/view/day",
-      "icon": "CalendarToday24"
+      "icon": "CalendarToday24",
+      "openWith": "edgeApp",
+      "fallbackApp": "outlook",
+      "outlookFolder": "calendar"
     },
     {
+      "group": "Office 365",
       "id": "email",
-      "label": "Email",
+      "label": "Your Mail",
       "subtitle": "Your Outlook inbox",
       "url": "https://outlook.cloud.microsoft/mail/",
-      "icon": "Mail24"
+      "icon": "Mail24",
+      "openWith": "edgeApp",
+      "fallbackApp": "outlook",
+      "outlookFolder": "inbox"
     }
   ],
+
+  // Groups shown as side-by-side tiles (icon + short label; subtitle becomes the tooltip).
+  // Unlisted groups get one full-width button per row.
+  "groupColumns": {
+    "Office 365": 2
+  },
 
   // Per-room settings, keyed by computer name (shown in Room Info).
   "rooms": {

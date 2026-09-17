@@ -58,7 +58,12 @@ Lives next to the `.exe`. Comments are allowed. Restart the app after editing.
 - `display.revertSeconds`, `session.countdownSeconds` — countdown lengths.
 - `hotkeys` — list of `{ "keys": "...", "action": "..." }`. Key names are WPF `Key` names:
   letters `A`–`Z`, digits `D0`–`D9`, `F1`–`F24`. Modifiers: `Ctrl`, `Alt`, `Shift`, `Win`.
-- `links` — Quick links buttons: `label`, `subtitle`, `url` (http/https/zoommtg/zoomus/msteams), optional `id` and `icon`.
+- `links` — Quick links buttons: `label`, `subtitle`, `url` (http/https/zoommtg/zoomus/msteams), optional `group` (heading), `id` and `icon`.
+  - `openWith`: `default` (Windows decides), `edge` (Edge, then Chrome), `edgeApp` (Edge, then Chrome, as an app window with no tabs).
+  - `groupColumns` (top level): e.g. `{ "Office 365": 2 }` shows that group as side-by-side tiles.
+  - `localApp`: installed program to open first (e.g. `POWERPNT.EXE`); if missing, asks whether to open `url` instead.
+  - `fallbackApp: "outlook"` + `outlookFolder: "calendar" | "inbox"`: with no Edge or Chrome, open installed Outlook
+    (classic, then new); if that fails the user is told the app can't open Outlook.
 - `rooms` — keyed by **computer name** (see Room info):
   - `roomName` — shown under the title.
   - `presenterDisplay` — the desk monitor's name (or part of it) from Room info.

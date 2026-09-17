@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using RadCRHelper.Config;
@@ -118,7 +119,10 @@ public partial class PanelWindow : Window
         DisplayStatusText.Visibility = status is null ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    /// <summary>One big button per link, styled like the Mirror/Extend buttons.</summary>
+    /// <summary>
+    /// A heading per group, then its buttons. Groups listed in groupColumns (e.g. "Office 365": 2) show as
+    /// compact tiles side by side; other groups get full-width buttons with a subtitle.
+    /// </summary>
     private void BuildLinks(IReadOnlyList<LinkSetting> links)
     {
         if (links.Count == 0)
@@ -127,39 +131,101 @@ public partial class PanelWindow : Window
             return;
         }
 
-        foreach (var link in links)
+        foreach (var group in links.GroupBy(l => l.Group ?? "", StringComparer.OrdinalIgnoreCase))
         {
-            var symbol = Enum.TryParse<SymbolRegular>(link.Icon, ignoreCase: true, out var s) ? s : SymbolRegular.Video24;
-
-            var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            text.Children.Add(new TextBlock { Text = link.Label, FontSize = 19, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
-            if (!string.IsNullOrWhiteSpace(link.Subtitle))
-                text.Children.Add(new TextBlock { Text = link.Subtitle, FontSize = 13, Opacity = 0.85, Margin = new Thickness(0, 2, 0, 0), TextWrapping = TextWrapping.Wrap });
-
-            var content = new Grid();
-            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });
-            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            var icon = new UiSymbolIcon { Symbol = symbol, FontSize = 30, VerticalAlignment = VerticalAlignment.Center };
-            Grid.SetColumn(text, 1);
-            content.Children.Add(icon);
-            content.Children.Add(text);
-
-            var button = new UiButton
+            LinksPanel.Children.Add(new TextBlock
             {
-                Appearance = ControlAppearance.Secondary,
-                MinHeight = 84,
-                Padding = new Thickness(14, 8, 14, 8),
-                Margin = new Thickness(0, LinksPanel.Children.Count == 0 ? 0 : 10, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                HorizontalContentAlignment = HorizontalAlignment.Stretch,
-                Tag = $"link.{link.Id}",
-                ToolTip = link.Url,
-                Content = content,
-            };
-            button.Click += Action_Click;
-            LinksPanel.Children.Add(button);
+                Text = group.Key,
+                FontSize = 14,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(2, LinksPanel.Children.Count == 0 ? 0 : 22, 0, 8),
+                Foreground = (System.Windows.Media.Brush)FindResource("TextFillColorSecondaryBrush"),
+            });
+
+            int columns = _config.GroupColumns.TryGetValue(group.Key, out var c) ? Math.Clamp(c, 1, 3) : 1;
+
+            if (columns == 1)
+            {
+                var stack = new StackPanel();
+                foreach (var link in group)
+                {
+                    var button = WideLinkButton(link);
+                    button.Margin = new Thickness(0, stack.Children.Count == 0 ? 0 : 10, 0, 0);
+                    stack.Children.Add(button);
+                }
+                LinksPanel.Children.Add(stack);
+            }
+            else
+            {
+                // Negative outer margin + equal tile margins = even 10 px gutters.
+                var grid = new UniformGrid { Columns = columns, Margin = new Thickness(-5) };
+                foreach (var link in group)
+                {
+                    var tile = TileLinkButton(link);
+                    tile.Margin = new Thickness(5);
+                    grid.Children.Add(tile);
+                }
+                LinksPanel.Children.Add(grid);
+            }
         }
     }
+
+    /// <summary>Full-width: icon, label, subtitle. Same look as Mirror/Extend.</summary>
+    private UiButton WideLinkButton(LinkSetting link)
+    {
+        var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        text.Children.Add(new TextBlock { Text = link.Label, FontSize = 19, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+        if (!string.IsNullOrWhiteSpace(link.Subtitle))
+            text.Children.Add(new TextBlock { Text = link.Subtitle, FontSize = 13, Opacity = 0.85, Margin = new Thickness(0, 2, 0, 0), TextWrapping = TextWrapping.Wrap });
+
+        var content = new Grid();
+        content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(44) });
+        content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        Grid.SetColumn(text, 1);
+        content.Children.Add(new UiSymbolIcon { Symbol = IconFor(link), FontSize = 30, VerticalAlignment = VerticalAlignment.Center });
+        content.Children.Add(text);
+
+        return LinkButton(link, content, minHeight: 84, HorizontalAlignment.Stretch);
+    }
+
+    /// <summary>Compact tile: icon above a short label. The subtitle becomes the tooltip.</summary>
+    private UiButton TileLinkButton(LinkSetting link)
+    {
+        var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        content.Children.Add(new UiSymbolIcon { Symbol = IconFor(link), FontSize = 28, HorizontalAlignment = HorizontalAlignment.Center });
+        content.Children.Add(new TextBlock
+        {
+            Text = link.Label,
+            FontSize = 15,
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 6, 0, 0),
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+        });
+
+        return LinkButton(link, content, minHeight: 84, HorizontalAlignment.Center);
+    }
+
+    private UiButton LinkButton(LinkSetting link, UIElement content, double minHeight, HorizontalAlignment contentAlignment)
+    {
+        var button = new UiButton
+        {
+            Appearance = ControlAppearance.Secondary,
+            MinHeight = minHeight,
+            Padding = new Thickness(12, 8, 12, 8),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            HorizontalContentAlignment = contentAlignment == HorizontalAlignment.Center ? HorizontalAlignment.Center : HorizontalAlignment.Stretch,
+            Tag = $"link.{link.Id}",
+            ToolTip = string.IsNullOrWhiteSpace(link.Subtitle) ? link.Label : link.Subtitle,
+            Content = content,
+        };
+        button.Click += Action_Click;
+        return button;
+    }
+
+    private static SymbolRegular IconFor(LinkSetting link) =>
+        Enum.TryParse<SymbolRegular>(link.Icon, ignoreCase: true, out var s) ? s : SymbolRegular.Video24;
 
     /// <summary>Short reassurance under the Meetings buttons, e.g. "Opening Resident Conference…".</summary>
     public void ShowLinkStatus(string message)
